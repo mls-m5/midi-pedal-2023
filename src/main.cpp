@@ -10,6 +10,11 @@ void sendMidiOn(int note)
     midiEventPacket_t noteOn = {0x09, 0x90 | 0, pitch, 100}; // channel 1, calculated pitch, velocity 100
     MidiUSB.sendMIDI(noteOn);
     MidiUSB.flush();
+
+    // Send note on command over serial port
+    Serial1.write(0x90);  // Note on command
+    Serial1.write(pitch); // Note number
+    Serial1.write(100);   // Velocity
 }
 
 void sendMidiOff(int note)
@@ -18,14 +23,20 @@ void sendMidiOff(int note)
     midiEventPacket_t noteOff = {0x08, 0x80 | 0, pitch, 0}; // channel 1, calculated pitch, velocity 0
     MidiUSB.sendMIDI(noteOff);
     MidiUSB.flush();
+
+    // Send note off command over serial port
+    Serial1.write(0x80);  // Note off command
+    Serial1.write(pitch); // Note number
+    Serial1.write(0);     // Velocity
 }
 
 struct PinState
 {
+    int pin;
     int oldState;
     unsigned long lastChangeTime;
 
-    PinState() : oldState(HIGH), lastChangeTime(0) {}
+    PinState(int pin) : pin{pin}, oldState(HIGH), lastChangeTime(0) {}
 
     void handleValue(int newState, int note)
     {
@@ -42,12 +53,12 @@ struct PinState
             if (newState == HIGH)
             {
                 sendMidiOff(note);
-                digitalWrite(LED_PIN, LOW);
+                digitalWrite(LED_PIN, HIGH);
             }
             else
             {
                 sendMidiOn(note);
-                digitalWrite(LED_PIN, HIGH);
+                digitalWrite(LED_PIN, LOW);
             }
 
             oldState = newState; // Update old pin state
@@ -56,17 +67,20 @@ struct PinState
     }
 };
 
-int pinArray[NUM_PINS] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}; // Define the pins you want to read
-PinState pinStates[NUM_PINS];
+// All pins used in the pro micro:
+// {4, 5, 6, 7, 8, 9, 10, 16, 14, 15, 18, 19, 20};
+
+PinState pinStates[NUM_PINS] = {4, 5, 6, 7, 8, 9, 10, 16, 14, 15, 18, 19, 20};
 
 void setup()
 {
     Serial.begin(9600);
+    Serial1.begin(31250); // Begin MIDI communication on Serial1
     pinMode(LED_PIN, OUTPUT);
 
     for (int i = 0; i < NUM_PINS; i++)
     {
-        pinMode(pinArray[i], INPUT_PULLUP);
+        pinMode(pinStates[i].pin, INPUT_PULLUP);
     }
 }
 
@@ -74,7 +88,7 @@ void loop()
 {
     for (int i = 0; i < NUM_PINS; i++)
     {
-        int pinState = digitalRead(pinArray[i]);
+        int pinState = digitalRead(pinStates[i].pin);
         pinStates[i].handleValue(pinState, i);
     }
 }
