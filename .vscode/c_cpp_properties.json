@@ -10,6 +10,7 @@
             "includePath": [
                 "/home/mattias/Prog/Experiment/midi-pedal/include",
                 "/home/mattias/Prog/Experiment/midi-pedal/src",
+                "/home/mattias/Prog/Experiment/midi-pedal/.pio/libdeps/pro_micro/MIDIUSB/src",
                 "/home/mattias/.platformio/packages/framework-arduino-avr/cores/arduino",
                 "/home/mattias/.platformio/packages/framework-arduino-avr/variants/sparkfun_promicro",
                 "/home/mattias/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
@@ -24,6 +25,7 @@
                 "path": [
                     "/home/mattias/Prog/Experiment/midi-pedal/include",
                     "/home/mattias/Prog/Experiment/midi-pedal/src",
+                    "/home/mattias/Prog/Experiment/midi-pedal/.pio/libdeps/pro_micro/MIDIUSB/src",
                     "/home/mattias/.platformio/packages/framework-arduino-avr/cores/arduino",
                     "/home/mattias/.platformio/packages/framework-arduino-avr/variants/sparkfun_promicro",
                     "/home/mattias/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",

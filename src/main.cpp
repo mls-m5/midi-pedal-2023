@@ -1,30 +1,60 @@
-
 #include <Arduino.h>
-#include <array>
+#include <MIDIUSB.h>
 
-#define PIN_NUMBER 2
 #define LED_PIN 17
+#define NUM_PINS 13
+
+int pinArray[NUM_PINS] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}; // Define the pins you want to read
+int oldPinStates[NUM_PINS] = {0};
 
 void setup()
 {
     Serial.begin(9600);
-    pinMode(PIN_NUMBER, INPUT_PULLUP);
     pinMode(LED_PIN, OUTPUT);
+
+    for (int i = 0; i < NUM_PINS; i++)
+    {
+        pinMode(pinArray[i], INPUT_PULLUP);
+        oldPinStates[i] = digitalRead(pinArray[i]); // Store initial pin states
+    }
+}
+
+void sendMidiOn(int note)
+{
+    int pitch = 60 + note;                                   // Middle C plus note number
+    midiEventPacket_t noteOn = {0x09, 0x90 | 0, pitch, 100}; // channel 1, calculated pitch, velocity 100
+    MidiUSB.sendMIDI(noteOn);
+    MidiUSB.flush();
+}
+
+void sendMidiOff(int note)
+{
+    int pitch = 60 + note;                                  // Middle C plus note number
+    midiEventPacket_t noteOff = {0x08, 0x80 | 0, pitch, 0}; // channel 1, calculated pitch, velocity 0
+    MidiUSB.sendMIDI(noteOff);
+    MidiUSB.flush();
 }
 
 void loop()
 {
-    int pinState = digitalRead(PIN_NUMBER);
-    Serial.println(pinState);
+    for (int i = 0; i < NUM_PINS; i++)
+    {
+        int pinState = digitalRead(pinArray[i]);
 
-    // if (pinState == HIGH)
-    // {
-    //     digitalWrite(LED_PIN, LOW); // LED is off when pinState is HIGH (because of pull-up resistor)
-    // }
-    // else
-    // {
-    //     digitalWrite(LED_PIN, HIGH); // LED is on when pinState is LOW (switch closed)
-    // }
+        if (pinState != oldPinStates[i])
+        { // If pin state has changed
+            if (pinState == HIGH)
+            {
+                sendMidiOff(i); // Now sends i (the pin number) as the note number
+                digitalWrite(LED_PIN, LOW);
+            }
+            else
+            {
+                sendMidiOn(i); // Now sends i (the pin number) as the note number
+                digitalWrite(LED_PIN, HIGH);
+            }
 
-    // delay(500); // Delay a bit to make it easier to read the output
+            oldPinStates[i] = pinState; // Update old pin state
+        }
+    }
 }
